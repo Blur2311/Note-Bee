@@ -1,30 +1,31 @@
-import { useState } from 'react';
-import { note_backend } from 'declarations/note_backend';
+import { useState } from "react";
+import { note_backend } from "declarations/note_backend";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { Header } from "./layout/header&footer/header";
+import { Footer } from "./layout/header&footer/footer";
+import { Homepage } from "./layout/homepage/homepage";
+import { NotePage } from "./layout/note/notepage";
 
 function App() {
-  const [greeting, setGreeting] = useState('');
-
-  function handleSubmit(event) {
-    event.preventDefault();
-    const name = event.target.elements.name.value;
-    note_backend.greet(name).then((greeting) => {
-      setGreeting(greeting);
-    });
-    return false;
-  }
-
   return (
-    <main>
-      <img src="/logo2.svg" alt="DFINITY logo" />
-      <br />
-      <br />
-      <form action="#" onSubmit={handleSubmit}>
-        <label htmlFor="name">Enter your name: &nbsp;</label>
-        <input id="name" alt="Name" type="text" />
-        <button type="submit">Click Me!</button>
-      </form>
-      <section id="greeting">{greeting}</section>
-    </main>
+    <Router>
+      <>
+        <Header />
+
+        <Routes>
+          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/home" element={<Homepage />} />
+          <Route path="/note" element={<NotePage />} />
+        </Routes>
+
+        <Footer />
+      </>
+    </Router>
   );
 }
 
