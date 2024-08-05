@@ -4,17 +4,21 @@ import Debug "mo:base/Debug";
 import Nat "mo:base/Nat";
 import Principal "mo:base/Principal";
 import HashMap "mo:base/HashMap";
+import Iter "mo:base/Iter";
 
-type Note = {
-  title: Text;
-  content: Text;
-};
+
 
 actor NoteBee {
-  let owner : Principal = Principal.fromText("vio7g-fm4hn-gnnk5-eav6k-352rg-tadp7-u6msk-xz2c6-pkmwq-2wwbr-gqe");
-  
+  type Note = {
+    title: Text;
+    content: Text;
+  };
+
+  let owner : Principal = Principal.fromText("vio7g-fm4hn-gnnk5-eav6k-352rg-tadp7-u6msk-xz2c6-pkmwq-2wwbr-gqe");  
   var notes: List.List<Note> = List.nil<Note>();
-  var noteUser = HashMap.HashMap<Principal, List.List<Note>>(1, Principal.equal, Principal.hash);
+
+  private stable var noteEntries: [(Principal, List.List<Note>)] = [];
+  private var noteUser = HashMap.HashMap<Principal, List.List<Note>>(1, Principal.equal, Principal.hash);
   noteUser.put(owner, notes);
 // 
 // 
@@ -27,6 +31,7 @@ actor NoteBee {
 
     return List.toArray(rNote);
   };
+  
 
   public shared(msg) func addNoteAut(titleText: Text, contentText: Text) : async Text {
     Debug.print(debug_show(msg.caller));
@@ -81,16 +86,29 @@ actor NoteBee {
     };
 
     // Cập nhật Note tại vị trí index
-    let front = List.take(tempNote, index);
+    let front = List.take(tempNote, index);    
     let back = List.drop(tempNote, index + 1);
+    let newBack = List.push(updatedNote, back);
     
-    let updatedNotes = List.append(front, back);
+    let updatedNotes = List.append(front, newBack);
 
 
     noteUser.put(callerPrincipal, updatedNotes);
 
     return "Note updated successfully!";
   };
+
+  system func preupgrade(){
+    //Thực hiện trước khi cập nhật
+    noteEntries := Iter.toArray(noteUser.entries());
+  };
+
+  system func postupgrade(){
+    //Thực hiện sau khi cập nhật
+    noteUser := HashMap.fromIter<Principal, List.List<Note>>(noteEntries.vals(), 1, Principal.equal, Principal.hash);
+  };
+
+}
 
   // public func updateNote(id: Nat, titleText: Text, contentText: Text){
   //   let newNote: Note = {
@@ -99,8 +117,6 @@ actor NoteBee {
   //   };
   //   notes.put(id, newNote);
   // }
-}
-
   // public func createNote(titleText: Text, contentText: Text) {
   //   let newNote: Note = {
   //     title = titleText;

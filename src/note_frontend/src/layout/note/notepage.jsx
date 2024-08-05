@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import { InputNoteArea } from "./components/inputarea";
 import { Note } from "./components/note";
 import { note_backend } from "declarations/note_backend";
+import { Principal } from "@dfinity/principal";
 
 export const NotePage = () => {
   const [notes, setNotes] = useState([]);
 
   function addNote(note) {
     setNotes((prevNotes) => {
-      note_backend.createNote(note.title, note.content);
+      //BA
+      note_backend.addNoteAut(note.title, note.content);
       return [note, ...prevNotes];
     });
   }
@@ -18,11 +20,15 @@ export const NotePage = () => {
   }, []);
 
   async function fetchData() {
-    const notesArray = await note_backend.readNotes();
+    //BA
+    const principal = Principal.fromText("2vxsx-fae");
+    console.log(principal);
+    const notesArray = await note_backend.noteOf(principal);
     setNotes(notesArray);
   }
 
   function deleteNote(id) {
+    //BA
     note_backend.deleteNote(id);
     setNotes((prevNotes) => {
       return prevNotes.filter((noteItem, index) => {
@@ -32,7 +38,8 @@ export const NotePage = () => {
   }
 
   function editNote(id, newTitle, newContent) {
-    // note_backend.updateNote(id, newTitle, newContent);
+    //BA
+    note_backend.updateNote(id, newTitle, newContent);
     setNotes((prevNotes) => {
       return prevNotes.map((noteItem, index) => {
         if (index === id) {
